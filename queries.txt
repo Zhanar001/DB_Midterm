@@ -1,0 +1,81 @@
+1. Here is the GROUP BY procedure. We use it to group up the data based on one or more rows in the table.
+
+CREATE OR REPLACE PROCEDURE grouping_up AS
+BEGIN
+  FOR rec IN (
+    SELECT first_name, last_name, gender, birth_date, COUNT(*) AS cust_num
+    FROM CUSTOMER
+    GROUP BY first_name, last_name, gender, birth_date
+    ORDER BY first_name, last_name, gender, birth_date
+  )
+  LOOP
+    DBMS_OUTPUT.PUT_LINE(
+      rec.first_name || ' ' || rec.last_name || ' (' || rec.gender || ') was born ' || rec.birth_date ||
+      ' has ' || rec.cust_num || ' customers'
+    );
+  END LOOP;
+END;
+/
+
+2. Function called “count_orders” that counts the number of orders that a particular customer made:
+
+Declaration:
+CREATE OR REPLACE FUNCTION count_orders(p_id IN NUMBER)
+RETURN NUMBER IS
+count_orders INT;
+BEGIN
+SELECT COUNT(*) INTO count_orders
+FROM Orders
+WHERE Customer_ID = p_id;
+RETURN count_orders;
+END;
+
+Execution:
+DECLARE
+c_id INT := 1499397;
+output INT;
+BEGIN
+output := count_orders(c_id);
+dbms_output.put_line(output);
+END;
+
+3. Here we create the procedure that uses SQL%ROWCOUNT in order to determine the number of affected rows. For example, the row price.
+
+CREATE OR REPLACE PROCEDURE row_count
+AS
+new_price number;
+BEGIN
+UPDATE PRODUCT
+    SET PRICE = 125
+    WHERE QUANTITY > 30;
+num1 := SQL%ROWCOUNT;
+    DBMS_OUTPUT.PUT_LINE(new_price);
+END;
+
+4. User-defined exception that raises when an entered title’s length is less than 5 characters:
+
+DECLARE
+  product_name VARCHAR2(50) := 'Narf';
+BEGIN
+  IF LENGTH(product_name) < 5 THEN
+    RAISE_APPLICATION_ERROR(-20001, 'Product name length must be greater than 5!');
+  END IF;
+EXCEPTION
+  WHEN OTHERS THEN
+    DBMS_OUTPUT.PUT_LINE('An error occurred: ' || SQLERRM);
+END;
+
+5. Here we created a trigger for showing the quantity of rows in the table after adding a new row:
+
+Creation of trigger:
+
+CREATE OR REPLACE TRIGGER show_row_count
+BEFORE INSERT ON Category
+FOR EACH ROW
+BEGIN
+  DBMS_OUTPUT.PUT_LINE('Current row count: ' || SQL%ROWCOUNT);
+END;
+
+Insertion in the table:
+
+INSERT INTO CATEGORY (Category_ID) VALUES (12)
